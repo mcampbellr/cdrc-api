@@ -12,3 +12,33 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(dbgenerated("uuid_generate_v1()")) @db.Uuid
+  name      String
+  email     String   @unique
+  password  String?
+  googleId  String?  @unique
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roles     Role[]   @relation("user_roles")
+
+  @@map("users")
+}
+
+model Role {
+  id        String   @id @default(dbgenerated("uuid_generate_v1()")) @db.Uuid
+  type      RoleType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]   @relation("user_roles")
+
+  @@map("roles")
+}
+
+enum RoleType {
+  ADMIN
+  ASSISTANT
+  USER
+}

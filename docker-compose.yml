@@ -1,0 +1,16 @@
+---
+name: cdrc
+services:
+  database:
+    container_name: cdrc-db
+    image: postgres:14-alpine
+    ports:
+      - '${CDRC_POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - dbStore:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=root
+      - POSTGRES_DB=cdrc-db
+volumes:
+  dbStore:
