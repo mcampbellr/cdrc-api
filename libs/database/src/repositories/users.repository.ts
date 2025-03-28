@@ -9,7 +9,15 @@ type CreateUserInput = Omit<Prisma.UserCreateInput, 'username'>;
 export class UsersRepository {
   constructor(private prisma: DatabaseService) {}
 
-  async findUserByGoogleId(googleId: string) {
+  async findById(id: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async findByGoogleId(googleId: string) {
     return this.prisma.user.findUnique({
       where: {
         googleId,
@@ -17,7 +25,7 @@ export class UsersRepository {
     });
   }
 
-  async findUserByEmail(email: string) {
+  async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: {
         email,
@@ -25,7 +33,7 @@ export class UsersRepository {
     });
   }
 
-  async updateUser(id: string, data: Prisma.UserUpdateArgs['data']) {
+  async update(id: string, data: Prisma.UserUpdateArgs['data']) {
     return this.prisma.user.update({
       where: {
         id,
@@ -34,18 +42,40 @@ export class UsersRepository {
     });
   }
 
-  async addGoogleRefreshToken(id: string, refreshToken: string) {
+  async updateRefreshToken(id: string, refreshToken: string) {
     return this.prisma.user.update({
       where: {
         id,
       },
       data: {
-        calendarRefreshToken: refreshToken,
+        refreshToken,
       },
     });
   }
 
-  async createUser(input: CreateUserInput | Prisma.UserCreateInput) {
+  async addGoogleRefreshToken(id: string, calendarRefreshToken: string) {
+    return this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        calendarRefreshToken,
+      },
+    });
+  }
+
+  async removeRefreshToken(id: string) {
+    return this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        refreshToken: null,
+      },
+    });
+  }
+
+  async create(input: CreateUserInput | Prisma.UserCreateInput) {
     const randomUid = uid();
 
     const data = input as Prisma.UserCreateInput;

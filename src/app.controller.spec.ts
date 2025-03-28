@@ -18,11 +18,5 @@ describe('AppController', () => {
     it('should return "Hello World!"', () => {
       expect(appController.getHello()).toBe('Hello World!');
     });
-
-    it('should return "This route will sign in with google"', () => {
-      expect(appController.signInWithGoogle()).toBe(
-        'This route will sign in with google',
-      );
-    });
   });
 });

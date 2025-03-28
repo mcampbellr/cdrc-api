@@ -3,15 +3,11 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 
 import { GoogleDto } from './dtos/google.dto';
-import { AuthRepository } from 'db/database/repositories/auth.repository';
-import { UsersRepository } from 'db/database/repositories/users.repository';
+import { UsersRepository } from '@db';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly _authRepository: AuthRepository,
-    private readonly _usersRepository: UsersRepository,
-  ) {}
+  constructor(private readonly _usersRepository: UsersRepository) {}
   async signInWithGoogle(googleCredentials: GoogleDto) {
     const { idToken } = googleCredentials;
 
@@ -29,17 +25,17 @@ export class AuthService {
 
     const googleUser = response.data;
 
-    let user = await this._usersRepository.findUserByGoogleId(googleUser.id);
+    let user = await this._usersRepository.findByGoogleId(googleUser.id);
 
     if (!user) {
-      user = await this._usersRepository.findUserByEmail(googleUser.email);
+      user = await this._usersRepository.findByEmail(googleUser.email);
 
       if (user) {
-        user = await this._usersRepository.updateUser(user.id, {
+        user = await this._usersRepository.update(user.id, {
           googleId: googleUser.id,
         });
       } else {
-        user = await this._usersRepository.createUser({
+        user = await this._usersRepository.create({
           googleId: googleUser.id,
           email: googleUser.email,
           name: googleUser.name,

@@ -12,6 +12,8 @@
   },
   "moduleNameMapper": {
     "db/database/(.*)": "<rootDir>/../libs/database/src/$1",
-    "db/database": "<rootDir>/../libs/database/src"
+    "db/database": "<rootDir>/../libs/database/src",
+    "@security/security/(.*)": "<rootDir>/../libs/security/src/$1",
+    "@security/security": "<rootDir>/../libs/security/src"
   }
 }

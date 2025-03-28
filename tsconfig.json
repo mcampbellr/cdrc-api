@@ -18,12 +18,10 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "db/database": [
-        "libs/database/src"
-      ],
-      "db/database/*": [
-        "libs/database/src/*"
-      ]
+      "@db": ["libs/database/src"],
+      "@db/*": ["libs/database/src/*"],
+      "@security": ["libs/security/src"],
+      "@security/*": ["libs/security/src/*"]
     }
   }
 }
