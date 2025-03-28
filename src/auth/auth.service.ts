@@ -3,9 +3,9 @@ import * as bcrypt from 'bcryptjs';
 import { google } from 'googleapis';
 
 import { GoogleDto } from './dtos/google.dto';
-import { UsersRepository } from '@db';
 import { SecurityService } from '@security';
 import { User } from '@prisma/client';
+import { UsersRepository } from '@app/database';
 
 @Injectable()
 export class AuthService {

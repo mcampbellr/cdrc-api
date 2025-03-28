@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
-import { UsersRepository } from '@db';
+import { UsersRepository } from '@app/database';
 
 @Injectable()
 export class AdminService {

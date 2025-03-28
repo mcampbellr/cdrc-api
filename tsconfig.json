@@ -26,8 +26,8 @@
     "paths": {
       "@security": ["libs/security/src"],
       "@security/*": ["libs/security/src/*"],
-      "@db": ["libs/db/src"],
-      "@db/*": ["libs/db/src/*"]
+      "@app/database": ["libs/database/src"],
+      "@app/database/*": ["libs/database/src/*"]
     }
   }
 }

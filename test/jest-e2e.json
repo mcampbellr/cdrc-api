@@ -1,5 +1,9 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
@@ -9,7 +13,7 @@
   "moduleNameMapper": {
     "@security/(.*)": "<rootDir>/../libs/security/src/$1",
     "@security": "<rootDir>/../libs/security/src",
-    "@db/(.*)": "<rootDir>/../libs/db/src/$1",
-    "@db": "<rootDir>/../libs/db/src"
+    "@app/database/(.*)": "<rootDir>/../libs/database/src/$1",
+    "@app/database": "<rootDir>/../libs/database/src"
   }
 }

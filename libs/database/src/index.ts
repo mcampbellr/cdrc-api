@@ -1,6 +1,5 @@
 import { AuthRepository } from './repositories/auth.repository';
 import { UsersRepository } from './repositories/users.repository';
-/* import { PrismaRefreshTokenRepository } from './repositories/refresh-token.repository'; */
 
 export const repositories = [
   /* PrismaRefreshTokenRepository, */
@@ -10,4 +9,6 @@ export const repositories = [
 
 export * from './repositories/auth.repository';
 export * from './repositories/users.repository';
-export * from './db.module'
+
+export * from './database.service';
+export * from './database.module';

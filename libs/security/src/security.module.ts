@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SecurityService } from './security.service';
-import { DbModule } from '@db';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { DatabaseModule } from '@app/database';
 
 @Module({
-  imports: [DbModule, JwtModule],
+  imports: [DatabaseModule, JwtModule],
   providers: [
     SecurityService,
     {
