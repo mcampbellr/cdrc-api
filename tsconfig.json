@@ -14,6 +14,7 @@
     "types": ["node", "jest"],
     "lib": ["ES2020.Promise", "ES2020"],
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "target": "ES2021",
     "sourceMap": true,
@@ -24,10 +25,10 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@security": ["libs/security/src"],
-      "@security/*": ["libs/security/src/*"],
       "@app/database": ["libs/database/src"],
-      "@app/database/*": ["libs/database/src/*"]
+      "@app/database/*": ["libs/database/src/*"],
+      "@app/security": ["libs/security/src"],
+      "@app/security/*": ["libs/security/src/*"]
     }
   }
 }

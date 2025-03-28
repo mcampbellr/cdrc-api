@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Req,
   UnauthorizedException,
   UseGuards,
   UsePipes,
@@ -10,10 +11,9 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { GoogleDto } from './dtos/google.dto';
-import { JwtAuthGuard } from '@security/jwt.guard';
-import { JwtUser } from '@security/jwt.strategy';
-import { LoginDto, RefreshDto } from './dtos';
-import { User } from '@security/user/user.decorator';
+import { LoginDto } from './dtos';
+import { JwtAuthGuard, User, JwtUser } from '@app/security';
+import { RequestWithCookies } from './types/requestCookies';
 
 @Controller('auth')
 export class AuthController {
@@ -22,7 +22,6 @@ export class AuthController {
   @Post('google')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   signInWithGoogle(@Body() googleDto: GoogleDto) {
-    console.log('googleDto', googleDto);
     return this._authService.signInWithGoogle(googleDto);
   }
 
@@ -37,15 +36,17 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async refresh(@Body() dto: RefreshDto) {
-    return this._authService.refreshTokens(dto.userId, dto.refreshToken);
+  async refresh(@Req() request: RequestWithCookies) {
+    const refreshToken = request.cookies.refreshToken;
+    const userId = request.cookies.userId;
+
+    return this._authService.refreshTokens(userId, refreshToken);
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async me(@User() user: JwtUser) {
-    return user;
+    return this._authService.profile(user.id);
   }
 
   @Post('logout')
@@ -53,6 +54,6 @@ export class AuthController {
   async logout(@User() user: JwtUser) {
     await this._authService.logout(user.id);
 
-    return { message: 'Logged out' };
+    return { ok: true };
   }
 }

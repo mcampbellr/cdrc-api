@@ -3,9 +3,9 @@ import * as bcrypt from 'bcryptjs';
 import { google } from 'googleapis';
 
 import { GoogleDto } from './dtos/google.dto';
-import { SecurityService } from '@security';
 import { User } from '@prisma/client';
 import { UsersRepository } from '@app/database';
+import { SecurityService } from '@app/security';
 
 @Injectable()
 export class AuthService {
@@ -14,21 +14,29 @@ export class AuthService {
     private readonly _securityService: SecurityService,
   ) {}
 
-  async signInWithGoogle(googleCredentials: GoogleDto) {
-    const { idToken } = googleCredentials;
+  async getGoogleUser(accessToken: string) {
+    try {
+      const oauth2Client = new google.auth.OAuth2();
+      oauth2Client.setCredentials({ access_token: accessToken });
 
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: idToken });
+      const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
+      const response = await oauth2.userinfo.get();
 
-    const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
-    const response = await oauth2.userinfo.get();
+      if (response.status !== 200) {
+        throw new ForbiddenException('Invalid Google token');
+      }
 
-    if (response.status !== 200) {
-      throw new ForbiddenException('Invalid Google token');
+      return response.data;
+    } catch (error) {
+      console.log('Error: ', error);
     }
+  }
 
-    const googleUser = response.data;
-
+  async createOrUpdateUserWithGoogle(
+    googleId: string,
+    googleRefreshToken?: string,
+  ) {
+    const googleUser = await this.getGoogleUser(googleId);
     let user = await this._usersRepository.findByGoogleId(googleUser.id);
 
     if (!user) {
@@ -48,7 +56,32 @@ export class AuthService {
       }
     }
 
+    if (googleRefreshToken) {
+      const encryptedRefreshToken =
+        this._securityService.encrypt(googleRefreshToken);
+
+      await this._usersRepository.addGoogleRefreshToken(
+        user.id,
+        encryptedRefreshToken,
+      );
+    }
+
     const { accessToken, refreshToken } = await this.login(user);
+
+    return {
+      rawUser: user,
+      user: await this._returnUserWithoutSensitiveData(user),
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async signInWithGoogle(googleCredentials: GoogleDto) {
+    const { idToken } = googleCredentials;
+
+    const { user, rawUser } = await this.createOrUpdateUserWithGoogle(idToken);
+
+    const { accessToken, refreshToken } = await this.login(rawUser);
 
     return {
       user,
@@ -83,6 +116,8 @@ export class AuthService {
   }
 
   async refreshTokens(userId: string, refreshToken: string) {
+    if (!refreshToken) throw new ForbiddenException();
+
     const user = await this._usersRepository.findById(userId);
     if (!user?.refreshToken) throw new ForbiddenException();
 
@@ -112,7 +147,26 @@ export class AuthService {
     };
   }
 
+  async profile(userId: string) {
+    const user = await this._usersRepository.findById(userId);
+    if (!user) throw new ForbiddenException();
+
+    return this._returnUserWithoutSensitiveData(user);
+  }
+
   async logout(userId: string) {
     await this._usersRepository.removeRefreshToken(userId);
+  }
+
+  async _returnUserWithoutSensitiveData(user: User) {
+    const {
+      password,
+      refreshToken,
+      calendarRefreshToken,
+      tokenVersion,
+      ...userWithoutPassword
+    } = user;
+
+    return userWithoutPassword;
   }
 }

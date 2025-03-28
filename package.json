@@ -35,10 +35,12 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.5.0",
+    "@types/cookie-parser": "^1.4.8",
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "cookie-parser": "^1.4.7",
     "google-auth-library": "^9.15.1",
     "googleapis": "^148.0.0",
     "passport": "^0.7.0",
@@ -95,8 +97,8 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^@security(|/.*)$": "<rootDir>/libs/security/src/$1",
-      "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1"
+      "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
+      "^@app/security(|/.*)$": "<rootDir>/libs/security/src/$1"
     }
   }
 }

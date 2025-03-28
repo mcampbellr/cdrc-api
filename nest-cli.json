@@ -1,21 +1,10 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true,
-    "webpack": true
+    "deleteOutDir": true
   },
   "projects": {
-    "security": {
-      "type": "library",
-      "root": "libs/security",
-      "entryFile": "index",
-      "sourceRoot": "libs/security/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/security/tsconfig.lib.json"
-      }
-    },
     "db": {
       "type": "library",
       "root": "libs/db",
@@ -32,6 +21,15 @@
       "sourceRoot": "libs/database/src",
       "compilerOptions": {
         "tsConfigPath": "libs/database/tsconfig.lib.json"
+      }
+    },
+    "security": {
+      "type": "library",
+      "root": "libs/security",
+      "entryFile": "index",
+      "sourceRoot": "libs/security/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/security/tsconfig.lib.json"
       }
     }
   }

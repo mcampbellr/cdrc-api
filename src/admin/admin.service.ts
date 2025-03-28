@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
-import { UsersRepository } from '@app/database';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class AdminService {
@@ -10,7 +10,7 @@ export class AdminService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly _usersRepository: UsersRepository,
+    private readonly _authService: AuthService,
   ) {
     this._oauth2Client = new google.auth.OAuth2(
       this.config.get<string>('GOOGLE_CLIENT_ID'),
@@ -19,24 +19,36 @@ export class AdminService {
     );
   }
 
-  googleConnectLinkGeneration() {
-    const doctorId = '123'; // This should be the doctor's ID
-
+  googleConnectLink(): string {
     return this._oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
-      scope: ['https://www.googleapis.com/auth/calendar'],
-      state: doctorId,
+      scope: [
+        'openid',
+        'profile',
+        'email',
+        'https://www.googleapis.com/auth/calendar',
+      ],
     });
   }
 
   async handleGoogleCallback(code: string) {
     const { tokens } = await this._oauth2Client.getToken(code);
 
-    return tokens;
-  }
+    if (!tokens.access_token || !tokens.refresh_token) {
+      throw new BadRequestException('Invalid Google code');
+    }
 
-  async saveGoogleRefreshToken(doctorId: string, refreshToken: string) {
-    return this._usersRepository.addGoogleRefreshToken(doctorId, refreshToken);
+    const { user, accessToken, refreshToken } =
+      await this._authService.createOrUpdateUserWithGoogle(
+        tokens.access_token,
+        tokens.refresh_token,
+      );
+
+    return {
+      accessToken,
+      refreshToken,
+      user,
+    };
   }
 }
