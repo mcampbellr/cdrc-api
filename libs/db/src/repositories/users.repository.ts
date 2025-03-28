@@ -1,5 +1,5 @@
+import { DbService } from '@db/db.service';
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../database.service';
 import { Prisma } from '@prisma/client';
 import uid from 'tiny-uid';
 
@@ -7,7 +7,7 @@ type CreateUserInput = Omit<Prisma.UserCreateInput, 'username'>;
 
 @Injectable()
 export class UsersRepository {
-  constructor(private prisma: DatabaseService) {}
+  constructor(private prisma: DbService) {}
 
   async findById(id: string) {
     return this.prisma.user.findUnique({

@@ -1,27 +1,33 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "stripInternal": true,
     "declaration": true,
     "removeComments": true,
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "pretty": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": false,
+    "baseUrl": "./",
+    "incremental": true,
+    "types": ["node", "jest"],
+    "lib": ["ES2020.Promise", "ES2020"],
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@db": ["libs/database/src"],
-      "@db/*": ["libs/database/src/*"],
       "@security": ["libs/security/src"],
-      "@security/*": ["libs/security/src/*"]
+      "@security/*": ["libs/security/src/*"],
+      "@db": ["libs/db/src"],
+      "@db/*": ["libs/db/src/*"]
     }
   }
 }

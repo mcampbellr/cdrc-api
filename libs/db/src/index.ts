@@ -10,3 +10,4 @@ export const repositories = [
 
 export * from './repositories/auth.repository';
 export * from './repositories/users.repository';
+export * from './db.module'
