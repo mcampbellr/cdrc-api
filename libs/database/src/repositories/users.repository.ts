@@ -1,21 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database.service';
-import { Prisma, RoleType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import uid from 'tiny-uid';
 
-const includeRoles = {
-  role: {
-    select: {
-      type: true,
-    },
-  },
-};
-
-interface CreateUserInput {
-  email: string;
-  name: string;
-  avatar: string;
-  googleId: string;
-}
+type CreateUserInput = Omit<Prisma.UserCreateInput, 'username'>;
 
 @Injectable()
 export class UsersRepository {
@@ -26,9 +14,6 @@ export class UsersRepository {
       where: {
         googleId,
       },
-      include: {
-        ...includeRoles,
-      },
     });
   }
 
@@ -36,9 +21,6 @@ export class UsersRepository {
     return this.prisma.user.findUnique({
       where: {
         email,
-      },
-      include: {
-        ...includeRoles,
       },
     });
   }
@@ -49,25 +31,28 @@ export class UsersRepository {
         id,
       },
       data,
-      include: {
-        ...includeRoles,
+    });
+  }
+
+  async addGoogleRefreshToken(id: string, refreshToken: string) {
+    return this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        calendarRefreshToken: refreshToken,
       },
     });
   }
 
-  async createUser(input: CreateUserInput) {
+  async createUser(input: CreateUserInput | Prisma.UserCreateInput) {
+    const randomUid = uid();
+
+    const data = input as Prisma.UserCreateInput;
+    data.username = `user-${randomUid}`;
+
     return this.prisma.user.create({
-      data: {
-        ...input,
-        role: {
-          connect: {
-            type: RoleType.USER,
-          },
-        },
-      },
-      include: {
-        ...includeRoles,
-      },
+      data,
     });
   }
 }

@@ -7,3 +7,6 @@ export const repositories = [
   AuthRepository,
   UsersRepository,
 ];
+
+export * from './repositories/auth.repository';
+export * from './repositories/users.repository';
