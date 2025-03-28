@@ -6,12 +6,15 @@
   "private": true,
   "license": "UNLICENSED",
   "prisma": {
-    "seed": "ts-node ./prisma/seed.ts"
+    "schema": "prisma/schema"
   },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
+    "migrate": "prisma migrate dev",
+    "migrate:dry": "prisma migrate dev --create-only",
+    "prisma:generate": "prisma generate",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -28,6 +31,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^6.5.0",
+    "axios": "^1.8.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "reflect-metadata": "^0.2.0",

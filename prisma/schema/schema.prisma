@@ -1,0 +1,350 @@
+// Only table mappings are standardized to snake_case. Field names remain in camelCase.
+generator client {
+  previewFeatures = ["prismaSchemaFolder"]
+  provider        = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  admin
+  user
+}
+
+enum AccountType {
+  doctor
+  assistant
+  patient
+}
+
+enum AppointmentStatus {
+  created
+  approved
+  declined
+}
+
+enum FileType {
+  photo
+  avatar
+  document
+  contract
+}
+
+enum CommentEntityType {
+  appointments
+  patientTreatments
+}
+
+enum SystemLogEntityType {
+  system
+  comments
+}
+
+enum DayOfWeek {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  sunday
+}
+
+enum TreatmentStatus {
+  completed
+  in_progress
+  canceled
+  scheduled
+}
+
+enum PhotoPhase {
+  before
+  after
+}
+
+model User {
+  id              String      @id @default(uuid())
+  username        String
+  role            RoleType    @default(user)
+  accountType     AccountType
+  email           String      @unique
+  password        String
+  avatar          String?
+  googleId        String?
+  appleId         String?
+  invitedBy       String?     @db.Uuid
+  invitationCode  String?
+  defaultBranchId String?     @db.Uuid
+  lastLoginAt     DateTime?
+  tokenVersion    Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  doctorBranches           DoctorBranch[]
+  doctorTreatments         DoctorTreatment[]
+  schedules                Schedule[]
+  uploadedPhotos           TreatmentPhoto[]           @relation("UploadedBy")
+  comments                 Comment[]                  @relation("CommentCreatedBy")
+  notifications            Notification[]
+  DoctorBranchAvailability DoctorBranchAvailability[]
+
+  @@map("users")
+}
+
+model Branch {
+  id                       String                     @id @default(uuid())
+  name                     String
+  address                  String
+  city                     String
+  country                  String
+  phone                    String
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  doctorBranches           DoctorBranch[]
+  DoctorBranchAvailability DoctorBranchAvailability[]
+
+  @@map("branches")
+}
+
+model DoctorBranch {
+  doctorId  String
+  branchId  String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor User   @relation(fields: [doctorId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@id([doctorId, branchId])
+  @@map("doctor_branches")
+}
+
+model DoctorBranchAvailability {
+  id        String    @id @default(uuid())
+  doctorId  String
+  branchId  String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  doctor User   @relation(fields: [doctorId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@map("doctor_branch_availability")
+}
+
+model Schedule {
+  id        String   @id @default(uuid())
+  userId    String
+  timezone  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User                   @relation(fields: [userId], references: [id])
+  availability ScheduleAvailability[]
+  days         DoctorDayOff[]
+  appointments Appointment[]
+
+  @@map("schedules")
+}
+
+model ScheduleAvailability {
+  id         String    @id @default(uuid())
+  scheduleId String
+  startTime  String
+  endTime    String
+  dayOfWeek  DayOfWeek
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("schedule_availability")
+}
+
+model DoctorDayOff {
+  id         String    @id @default(uuid())
+  dateOf     DateTime
+  startTime  String
+  endTime    String
+  allDay     Boolean
+  reason     String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  scheduleId String
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("doctor_days_off")
+}
+
+model Appointment {
+  id            String            @id @default(uuid())
+  scheduleId    String
+  status        AppointmentStatus @default(created)
+  approvedBy    String?
+  declinedBy    String?
+  declineReason String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id])
+
+  @@map("appointments")
+}
+
+model Treatment {
+  id                String             @id @default(uuid())
+  name              String
+  imagePath         String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  doctorTreatments  DoctorTreatment[]
+  patientTreatments PatientTreatment[]
+
+  @@map("treatments")
+}
+
+model DoctorTreatment {
+  doctorId    String
+  treatmentId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  doctor    User      @relation(fields: [doctorId], references: [id])
+  treatment Treatment @relation(fields: [treatmentId], references: [id])
+
+  @@id([doctorId, treatmentId])
+  @@map("doctor_treatment")
+}
+
+model PatientTreatment {
+  id              String           @id @default(uuid())
+  patientId       String
+  treatmentId     String
+  doctorId        String
+  appointmentId   String
+  performedAt     DateTime
+  notes           String
+  status          TreatmentStatus
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  treatmentPhotos TreatmentPhoto[]
+  Treatment       Treatment        @relation(fields: [treatmentId], references: [id])
+
+  @@map("patient_treatments")
+}
+
+model TreatmentPhoto {
+  id                 String     @id @default(uuid())
+  patientTreatmentId String
+  fileId             String
+  type               PhotoPhase
+  isPublic           Boolean    @default(false)
+  uploadedById       String
+  createdAt          DateTime   @default(now())
+
+  uploadedBy       User             @relation("UploadedBy", fields: [uploadedById], references: [id])
+  PatientTreatment PatientTreatment @relation(fields: [patientTreatmentId], references: [id])
+
+  @@map("treatment_photos")
+}
+
+model Comment {
+  id          String            @id @default(uuid())
+  entityId    String
+  entityType  CommentEntityType
+  text        String
+  likes       Int               @default(0)
+  commentId   String?
+  createdById String
+  isEdited    Boolean
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+
+  createdBy User @relation("CommentCreatedBy", fields: [createdById], references: [id])
+
+  @@map("comments")
+}
+
+model File {
+  id        String    @id @default(uuid())
+  fileType  FileType
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("files")
+}
+
+model SystemLog {
+  id         String              @id @default(uuid())
+  entityId   String
+  entityType SystemLogEntityType
+  oldVersion String
+  newVersion String
+  createdAt  DateTime            @default(now())
+
+  @@map("system_logs")
+}
+
+model Feedback {
+  id            String   @id @default(uuid())
+  patientId     String
+  appointmentId String
+  rating        Int
+  comment       String
+  createdAt     DateTime @default(now())
+
+  @@map("feedback")
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  patientId     String
+  appointmentId String
+  amount        Float
+  currency      String
+  method        String
+  status        String
+  reference     String
+  createdAt     DateTime @default(now())
+
+  @@map("payments")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  sku         String
+  description String
+  price       Float
+  stock       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
