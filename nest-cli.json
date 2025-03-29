@@ -2,7 +2,8 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": false
   },
   "projects": {
     "db": {
@@ -30,6 +31,15 @@
       "sourceRoot": "libs/security/src",
       "compilerOptions": {
         "tsConfigPath": "libs/security/tsconfig.lib.json"
+      }
+    },
+    "google": {
+      "type": "library",
+      "root": "libs/google",
+      "entryFile": "index",
+      "sourceRoot": "libs/google/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/google/tsconfig.lib.json"
       }
     }
   }

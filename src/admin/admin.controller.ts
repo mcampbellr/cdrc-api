@@ -2,20 +2,22 @@ import { Controller, Get, Query, Redirect, Res } from '@nestjs/common';
 import { CookieOptions, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { AdminService } from './admin.service';
+import { GoogleService } from '@app/google';
 
 @Controller('admin')
 export class AdminController {
   private readonly environment: string;
   constructor(
-    private readonly adminService: AdminService,
-    private readonly configService: ConfigService,
+    private readonly _adminService: AdminService,
+    private readonly _googleService: GoogleService,
+    private readonly _configService: ConfigService,
   ) {
-    this.environment = this.configService.get<string>('NODE_ENV');
+    this.environment = this._configService.get<string>('NODE_ENV');
   }
 
   @Get('/google/login')
   connectGoogle() {
-    return this.adminService.googleConnectLink();
+    return this._googleService.googleConnectLink();
   }
 
   @Get('/google/callback')
@@ -25,9 +27,9 @@ export class AdminController {
     @Res() res: Response,
   ) {
     try {
-      const result = await this.adminService.handleGoogleCallback(code);
+      const result = await this._adminService.handleGoogleCallback(code);
 
-      const frontendUrl = this.configService.get<string>('APP_FRONTEND_URL');
+      const frontendUrl = this._configService.get<string>('APP_FRONTEND_URL');
 
       if (!frontendUrl) {
         throw new Error('APP_FRONTEND_URL is not defined');
@@ -46,7 +48,7 @@ export class AdminController {
         url: `${frontendUrl}/google/success?at=${result.accessToken}`,
       };
     } catch (e) {
-      const frontendUrl = this.configService.get<string>('APP_FRONTEND_URL');
+      const frontendUrl = this._configService.get<string>('APP_FRONTEND_URL');
       if (!frontendUrl) {
         throw new Error('APP_FRONTEND_URL is not defined');
       }

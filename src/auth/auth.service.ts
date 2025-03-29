@@ -1,42 +1,25 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { google } from 'googleapis';
 
 import { GoogleDto } from './dtos/google.dto';
 import { User } from '@prisma/client';
 import { UsersRepository } from '@app/database';
 import { SecurityService } from '@app/security';
+import { GoogleService } from '@app/google';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly _googleService: GoogleService,
     private readonly _usersRepository: UsersRepository,
     private readonly _securityService: SecurityService,
   ) {}
-
-  async getGoogleUser(accessToken: string) {
-    try {
-      const oauth2Client = new google.auth.OAuth2();
-      oauth2Client.setCredentials({ access_token: accessToken });
-
-      const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
-      const response = await oauth2.userinfo.get();
-
-      if (response.status !== 200) {
-        throw new ForbiddenException('Invalid Google token');
-      }
-
-      return response.data;
-    } catch (error) {
-      console.log('Error: ', error);
-    }
-  }
 
   async createOrUpdateUserWithGoogle(
     googleId: string,
     googleRefreshToken?: string,
   ) {
-    const googleUser = await this.getGoogleUser(googleId);
+    const googleUser = await this._googleService.getGoogleUser(googleId);
     let user = await this._usersRepository.findByGoogleId(googleUser.id);
 
     if (!user) {

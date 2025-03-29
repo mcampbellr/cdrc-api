@@ -3,9 +3,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { DatabaseModule } from '@app/database';
 import { JwtStrategy, SecurityModule, StrictJwtStrategy } from '@app/security';
+import { GoogleModule } from '@app/google';
 
 @Module({
-  imports: [DatabaseModule, SecurityModule],
+  imports: [DatabaseModule, SecurityModule, GoogleModule],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, StrictJwtStrategy],
   exports: [AuthService, JwtStrategy, StrictJwtStrategy],

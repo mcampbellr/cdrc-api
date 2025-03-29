@@ -11,8 +11,14 @@
     "resolveJsonModule": false,
     "baseUrl": "./",
     "incremental": true,
-    "types": ["node", "jest"],
-    "lib": ["ES2020.Promise", "ES2020"],
+    "types": [
+      "node",
+      "jest"
+    ],
+    "lib": [
+      "ES2020.Promise",
+      "ES2020"
+    ],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
@@ -25,10 +31,24 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/database": ["libs/database/src"],
-      "@app/database/*": ["libs/database/src/*"],
-      "@app/security": ["libs/security/src"],
-      "@app/security/*": ["libs/security/src/*"]
+      "@app/database": [
+        "libs/database/src"
+      ],
+      "@app/database/*": [
+        "libs/database/src/*"
+      ],
+      "@app/security": [
+        "libs/security/src"
+      ],
+      "@app/security/*": [
+        "libs/security/src/*"
+      ],
+      "@app/google": [
+        "libs/google/src"
+      ],
+      "@app/google/*": [
+        "libs/google/src/*"
+      ]
     }
   }
 }

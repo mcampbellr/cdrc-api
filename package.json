@@ -98,7 +98,8 @@
     ],
     "moduleNameMapper": {
       "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
-      "^@app/security(|/.*)$": "<rootDir>/libs/security/src/$1"
+      "^@app/security(|/.*)$": "<rootDir>/libs/security/src/$1",
+      "^@app/google(|/.*)$": "<rootDir>/libs/google/src/$1"
     }
   }
 }

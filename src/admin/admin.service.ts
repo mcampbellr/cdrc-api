@@ -1,35 +1,16 @@
+import { GoogleService } from '@app/google';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { google } from 'googleapis';
-import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class AdminService {
   private _oauth2Client: OAuth2Client;
-
   constructor(
-    private readonly config: ConfigService,
+    private readonly _googleService: GoogleService,
     private readonly _authService: AuthService,
   ) {
-    this._oauth2Client = new google.auth.OAuth2(
-      this.config.get<string>('GOOGLE_CLIENT_ID'),
-      this.config.get<string>('GOOGLE_CLIENT_SECRET'),
-      this.config.get<string>('GOOGLE_REDIRECT_URI'),
-    );
-  }
-
-  googleConnectLink(): string {
-    return this._oauth2Client.generateAuthUrl({
-      access_type: 'offline',
-      prompt: 'consent',
-      scope: [
-        'openid',
-        'profile',
-        'email',
-        'https://www.googleapis.com/auth/calendar',
-      ],
-    });
+    this._oauth2Client = this._googleService.getOauth2Client();
   }
 
   async handleGoogleCallback(code: string) {
