@@ -1,16 +1,14 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
-import { JwtAuthGuard, JwtUser, User } from '@app/security';
+import { JwtAuthGuard } from '@app/security';
 
 @Controller('schedule')
 export class ScheduleController {
-  constructor(private readonly scheduleService: ScheduleService,
+  constructor(private readonly scheduleService: ScheduleService) {}
 
-  ) {}
-
-  @Get()
+  @Get(':doctorId')
   @UseGuards(JwtAuthGuard)
-  findAll(@User() user: JwtUser) {
-    return this.scheduleService.findAll();
+  getDoctorAvailableSchedule(@Param('doctorId') doctorId: string) {
+    return this.scheduleService.getDoctorAvaliableSchedule(doctorId);
   }
 }

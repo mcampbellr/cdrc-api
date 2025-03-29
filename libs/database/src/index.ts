@@ -1,9 +1,10 @@
 import { AuthRepository } from './repositories/auth.repository';
+import { ScheduleRepository } from './repositories/schedule.repository';
 import { UsersRepository } from './repositories/users.repository';
 
 export const repositories = [
-  /* PrismaRefreshTokenRepository, */
   AuthRepository,
+  ScheduleRepository,
   UsersRepository,
 ];
 
