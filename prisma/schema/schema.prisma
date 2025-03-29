@@ -75,8 +75,8 @@ model DoctorBranch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  doctor User   @relation(fields: [doctorId], references: [id])
-  branch Branch @relation(fields: [branchId], references: [id])
+  doctor User   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   @@id([doctorId, branchId])
   @@map("doctor_branches")
@@ -97,53 +97,6 @@ model DoctorBranchAvailability {
   branch Branch @relation(fields: [branchId], references: [id])
 
   @@map("doctor_branch_availability")
-}
-
-model Schedule {
-  id        String   @id @default(uuid())
-  userId    String
-  timezone  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user         User                   @relation(fields: [userId], references: [id])
-  availability ScheduleAvailability[]
-  days         DoctorDayOff[]
-  appointments Appointment[]
-
-  @@map("schedules")
-}
-
-model ScheduleAvailability {
-  id         String    @id @default(uuid())
-  scheduleId String
-  startTime  String
-  endTime    String
-  dayOfWeek  DayOfWeek
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
-
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
-
-  @@map("schedule_availability")
-}
-
-model DoctorDayOff {
-  id         String    @id @default(uuid())
-  dateOf     DateTime
-  startTime  String
-  endTime    String
-  allDay     Boolean
-  reason     String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
-  scheduleId String
-
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
-
-  @@map("doctor_days_off")
 }
 
 model Appointment {

@@ -22,7 +22,6 @@ model User {
   appleId              String?     @unique
   invitedBy            String?     @db.Uuid
   invitationCode       String?
-  defaultBranchId      String?     @db.Uuid
   lastLoginAt          DateTime?
   tokenVersion         Int         @default(0)
   refreshToken         String?     @unique
