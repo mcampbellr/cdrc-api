@@ -1,8 +1,8 @@
 import { Controller, Get, Query, Redirect, Res } from '@nestjs/common';
 import { CookieOptions, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { AdminService } from './admin.service';
 import { GoogleService } from '@app/google';
+import { AdminService } from '../services/admin.service';
 
 @Controller('admin')
 export class AdminController {

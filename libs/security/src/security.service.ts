@@ -7,12 +7,7 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
-interface JWTPayload {
-  sub: string;
-  email: string;
-  version: number;
-}
+import { JwtPayload } from './jwt.strategy';
 
 const algorithm = 'aes-256-gcm';
 
@@ -79,11 +74,11 @@ export class SecurityService {
     }
   }
 
-  signAccessToken(payload: JWTPayload): string {
+  signAccessToken(payload: JwtPayload): string {
     return this.jwtAccess.sign(payload);
   }
 
-  signRefreshToken(payload: JWTPayload): string {
+  signRefreshToken(payload: JwtPayload): string {
     return this.jwtRefresh.sign(payload);
   }
 
@@ -95,7 +90,7 @@ export class SecurityService {
     return this.jwtRefresh.verify(token);
   }
 
-  async signAndGenerateTokens(payload: JWTPayload): Promise<{
+  async signAndGenerateTokens(payload: JwtPayload): Promise<{
     accessToken: string;
     refreshToken: string;
     hashedRefreshToken: string;

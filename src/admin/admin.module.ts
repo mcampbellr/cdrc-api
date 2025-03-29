@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AdminService } from './admin.service';
-import { AdminController } from './admin.controller';
 import { DatabaseModule } from '@app/database';
 import { SecurityModule } from '@app/security';
 import { AuthModule } from 'src/auth/auth.module';
 import { GoogleModule } from '@app/google';
+import { AdminController } from './controllers/admin.controller';
+import { AdminService } from './services/admin.service';
+import { AdminUsersController } from './controllers/admin.users.controller';
+import { AdminUsersService } from './services/admin.users.service';
 
 @Module({
   imports: [DatabaseModule, SecurityModule, AuthModule, GoogleModule],
-  controllers: [AdminController],
-  providers: [AdminService],
+  controllers: [AdminController, AdminUsersController],
+  providers: [AdminService, AdminUsersService],
 })
 export class AdminModule {}

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import uid from 'tiny-uid';
 import { DatabaseService } from '../database.service';
 
@@ -8,6 +8,26 @@ type CreateUserInput = Omit<Prisma.UserCreateInput, 'username'>;
 @Injectable()
 export class UsersRepository {
   constructor(private prisma: DatabaseService) {}
+
+  async list(status?: UserStatus | UserStatus[]) {
+    if (!status) {
+      return this.prisma.user.findMany();
+    }
+
+    const where = Array.isArray(status)
+      ? {
+          status: {
+            in: status,
+          },
+        }
+      : {
+          status,
+        };
+
+    return this.prisma.user.findMany({
+      where,
+    });
+  }
 
   async findById(id: string) {
     return this.prisma.user.findUnique({

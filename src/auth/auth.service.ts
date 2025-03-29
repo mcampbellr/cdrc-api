@@ -49,28 +49,18 @@ export class AuthService {
       );
     }
 
-    const { accessToken, refreshToken } = await this.login(user);
+    const tokens = await this._issueTokensAndPersist(user);
 
     return {
       rawUser: user,
-      user: await this._returnUserWithoutSensitiveData(user),
-      accessToken,
-      refreshToken,
+      user: await this._sanitizeUser(user),
+      ...tokens,
     };
   }
 
   async signInWithGoogle(googleCredentials: GoogleDto) {
     const { idToken } = googleCredentials;
-
-    const { user, rawUser } = await this.createOrUpdateUserWithGoogle(idToken);
-
-    const { accessToken, refreshToken } = await this.login(rawUser);
-
-    return {
-      user,
-      accessToken,
-      refreshToken,
-    };
+    return this.createOrUpdateUserWithGoogle(idToken);
   }
 
   async validateUser(email: string, password: string) {
@@ -81,9 +71,36 @@ export class AuthService {
   }
 
   async login(user: User) {
+    return this._issueTokensAndPersist(user);
+  }
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this._validateStoredRefreshToken(userId, refreshToken);
+
+    const payload = this._securityService.verifyRefreshToken(refreshToken);
+    if (payload.version !== user.tokenVersion) {
+      throw new ForbiddenException('Token version mismatch');
+    }
+
+    return this._issueTokensAndPersist(user);
+  }
+
+  async profile(userId: string) {
+    const user = await this._usersRepository.findById(userId);
+    if (!user) throw new ForbiddenException();
+
+    return this._sanitizeUser(user);
+  }
+
+  async logout(userId: string) {
+    await this._usersRepository.removeRefreshToken(userId);
+  }
+
+  private async _issueTokensAndPersist(user: User) {
     const payload = {
       sub: user.id,
       email: user.email,
+      role: user.role,
       version: user.tokenVersion,
     };
 
@@ -98,58 +115,27 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(userId: string, refreshToken: string) {
-    if (!refreshToken) throw new ForbiddenException();
+  private async _validateStoredRefreshToken(userId: string, token: string) {
+    if (!token) throw new ForbiddenException();
 
     const user = await this._usersRepository.findById(userId);
     if (!user?.refreshToken) throw new ForbiddenException();
 
-    const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    const isValid = await bcrypt.compare(token, user.refreshToken);
     if (!isValid) throw new ForbiddenException();
 
-    const payload = this._securityService.verifyRefreshToken(refreshToken);
-    if (payload.version !== user.tokenVersion) {
-      throw new ForbiddenException('Token version mismatch');
-    }
-
-    const {
-      accessToken,
-      refreshToken: newRefreshToken,
-      hashedRefreshToken: newHashed,
-    } = await this._securityService.signAndGenerateTokens({
-      sub: user.id,
-      email: user.email,
-      version: user.tokenVersion,
-    });
-
-    await this._usersRepository.updateRefreshToken(user.id, newHashed);
-
-    return {
-      accessToken,
-      refreshToken: newRefreshToken,
-    };
+    return user;
   }
 
-  async profile(userId: string) {
-    const user = await this._usersRepository.findById(userId);
-    if (!user) throw new ForbiddenException();
-
-    return this._returnUserWithoutSensitiveData(user);
-  }
-
-  async logout(userId: string) {
-    await this._usersRepository.removeRefreshToken(userId);
-  }
-
-  async _returnUserWithoutSensitiveData(user: User) {
+  private async _sanitizeUser(user: User) {
     const {
       password,
       refreshToken,
       calendarRefreshToken,
       tokenVersion,
-      ...userWithoutPassword
+      ...safeUser
     } = user;
 
-    return userWithoutPassword;
+    return safeUser;
   }
 }

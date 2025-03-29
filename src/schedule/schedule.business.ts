@@ -107,25 +107,25 @@ export class ScheduleBusiness {
     let availabilities: Partial<ScheduleAvailability>[] | undefined;
 
     if (isMonday(date)) {
-      availabilities = groupedAvailabilities.monday;
+      availabilities = groupedAvailabilities.MONDAY;
     }
     if (isTuesday(date)) {
-      availabilities = groupedAvailabilities.tuesday;
+      availabilities = groupedAvailabilities.TUESDAY;
     }
     if (isWednesday(date)) {
-      availabilities = groupedAvailabilities.wednesday;
+      availabilities = groupedAvailabilities.WEDNESDAY;
     }
     if (isThursday(date)) {
-      availabilities = groupedAvailabilities.thursday;
+      availabilities = groupedAvailabilities.THURSDAY;
     }
     if (isFriday(date)) {
-      availabilities = groupedAvailabilities.friday;
+      availabilities = groupedAvailabilities.FRIDAY;
     }
     if (isSaturday(date)) {
-      availabilities = groupedAvailabilities.saturday;
+      availabilities = groupedAvailabilities.SATURDAY;
     }
     if (isSunday(date)) {
-      availabilities = groupedAvailabilities.sunday;
+      availabilities = groupedAvailabilities.SUNDAY;
     }
 
     if (availabilities == null) return [];

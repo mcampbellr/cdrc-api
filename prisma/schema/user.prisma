@@ -1,41 +1,49 @@
 enum AccountType {
-  doctor
-  assistant
-  patient
+  DOCTOR
+  ASSISTANT
+  PATIENT
 }
 
 enum RoleType {
-  admin
-  user
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
 }
 
 model User {
-  id                   String      @id @default(uuid())
-  name                 String
-  username             String      @unique
-  role                 RoleType    @default(user)
-  accountType          AccountType @default(patient)
-  email                String      @unique
-  password             String?
-  avatar               String?
-  googleId             String?     @unique
-  appleId              String?     @unique
-  invitedBy            String?     @db.Uuid
-  invitationCode       String?
-  lastLoginAt          DateTime?
-  tokenVersion         Int         @default(0)
-  refreshToken         String?     @unique
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  calendarRefreshToken String?
-
+  id                       String                     @id @default(uuid())
+  name                     String
+  username                 String                     @unique
+  role                     RoleType                   @default(USER)
+  accountType              AccountType                @default(PATIENT)
+  email                    String                     @unique
+  password                 String?
+  avatar                   String?
+  googleId                 String?                    @unique
+  appleId                  String?                    @unique
+  invitedBy                String?                    @db.Uuid
+  invitationCode           String?
+  lastLoginAt              DateTime?
+  tokenVersion             Int                        @default(0)
+  refreshToken             String?                    @unique
+  status                   UserStatus                 @default(ACTIVE)
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  calendarRefreshToken     String?
   doctorBranches           DoctorBranch[]
   doctorTreatments         DoctorTreatment[]
   schedules                Schedule[]
-  uploadedPhotos           TreatmentPhoto[]           @relation("UploadedBy")
-  comments                 Comment[]                  @relation("CommentCreatedBy")
   notifications            Notification[]
   doctorBranchAvailability DoctorBranchAvailability[]
+  uploadedPhotos           TreatmentPhoto[]           @relation("UploadedBy")
+  comments                 Comment[]                  @relation("CommentCreatedBy")
+  treatments               PatientTreatment[]         @relation("Patient")
+  patientTreatments        PatientTreatment[]         @relation("Doctor")
+  payments                 Payment[]
 
   @@map("users")
 }
