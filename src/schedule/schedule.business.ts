@@ -1,7 +1,6 @@
 import { UsersRepository } from '@app/database';
 import { ScheduleRepository } from '@app/database/repositories/schedule.repository';
 import { GoogleService } from '@app/google';
-import { SecurityService } from '@app/security';
 import { Injectable } from '@nestjs/common';
 import {
   addMinutes,
@@ -24,6 +23,7 @@ import {
 import { fromZonedTime } from 'date-fns-tz';
 import { DAYS_OF_WEEK_IN_ORDER } from './types/constants';
 import { ScheduleAvailability } from '@prisma/client';
+import { EncryptionService } from '@app/security';
 
 @Injectable()
 export class ScheduleBusiness {
@@ -31,7 +31,7 @@ export class ScheduleBusiness {
     private readonly _scheduleRepository: ScheduleRepository,
     private readonly _googleService: GoogleService,
     private readonly _usersRepository: UsersRepository,
-    private readonly _securityService: SecurityService,
+    private readonly _encryptionService: EncryptionService,
   ) {}
 
   async getValidTimesFromSchedule(
@@ -57,7 +57,7 @@ export class ScheduleBusiness {
       (a) => a.dayOfWeek,
     );
 
-    const decryptedRefreshToken = this._securityService.decrypt(
+    const decryptedRefreshToken = this._encryptionService.decrypt(
       user.calendarRefreshToken,
     );
 

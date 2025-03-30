@@ -1,5 +1,6 @@
 export * from './security.module';
-export * from './security.service';
+export * from './services/security.service';
+export * from './services/encryption.service';
 
 export * from './strategies';
 export * from './jwt.guard';

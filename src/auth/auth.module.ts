@@ -4,11 +4,13 @@ import { AuthController } from './auth.controller';
 import { DatabaseModule } from '@app/database';
 import { JwtStrategy, SecurityModule, StrictJwtStrategy } from '@app/security';
 import { GoogleModule } from '@app/google';
+import { AuthMFAController } from './auth-mfa.controller';
+import { AuthMFAService } from './auth-mfa.service';
 
 @Module({
   imports: [DatabaseModule, SecurityModule, GoogleModule],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, StrictJwtStrategy],
-  exports: [AuthService, JwtStrategy, StrictJwtStrategy],
+  controllers: [AuthController, AuthMFAController],
+  providers: [AuthService, AuthMFAService, JwtStrategy, StrictJwtStrategy],
+  exports: [AuthService, AuthMFAService, JwtStrategy, StrictJwtStrategy],
 })
 export class AuthModule {}

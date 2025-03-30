@@ -4,15 +4,16 @@ import * as bcrypt from 'bcryptjs';
 import { GoogleDto } from './dtos/google.dto';
 import { User } from '@prisma/client';
 import { UsersRepository } from '@app/database';
-import { SecurityService } from '@app/security';
 import { GoogleService } from '@app/google';
 import { RegisterDto } from './dtos/register.dto';
+import { EncryptionService, SecurityService } from '@app/security';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly _googleService: GoogleService,
     private readonly _usersRepository: UsersRepository,
+    private readonly _encryptionService: EncryptionService,
     private readonly _securityService: SecurityService,
   ) {}
   async register(registerData: RegisterDto) {}
@@ -43,7 +44,7 @@ export class AuthService {
 
     if (googleRefreshToken) {
       const encryptedRefreshToken =
-        this._securityService.encrypt(googleRefreshToken);
+        this._encryptionService.encrypt(googleRefreshToken);
 
       await this._usersRepository.addGoogleRefreshToken(
         user.id,

@@ -95,6 +95,18 @@ export class UsersRepository {
     });
   }
 
+  async addUserMfa(id: string, mfaSecret: string) {
+    return this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        isTwoFactorEnabled: true,
+        twoFactorSecret: mfaSecret,
+      },
+    });
+  }
+
   async create(input: CreateUserInput | Prisma.UserCreateInput) {
     const randomUid = uid();
 

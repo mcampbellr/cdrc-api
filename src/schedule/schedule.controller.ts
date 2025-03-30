@@ -1,6 +1,7 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { JwtAuthGuard } from '@app/security';
+import { DoctorIdDtoParam } from './dto/doctor-id.dto';
 
 @Controller('schedule')
 export class ScheduleController {
@@ -8,7 +9,7 @@ export class ScheduleController {
 
   @Get(':doctorId')
   @UseGuards(JwtAuthGuard)
-  getDoctorAvailableSchedule(@Param('doctorId') doctorId: string) {
-    return this.scheduleService.getDoctorAvaliableSchedule(doctorId);
+  getDoctorAvailableSchedule(@Param() params: DoctorIdDtoParam) {
+    return this.scheduleService.getDoctorAvaliableSchedule(params.doctorId);
   }
 }

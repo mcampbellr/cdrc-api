@@ -1,13 +1,19 @@
 import { Module } from '@nestjs/common';
-import { SecurityService } from './security.service';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { DatabaseModule } from '@app/database';
 import { JWT_TYPE } from './jwt.enum';
+import { SecurityBusiness } from './security.business';
+import { SecurityService } from './services/security.service';
+import { EncryptionService } from './services/encryption.service';
+import { MFAService } from './services/mfa.service';
 
 @Module({
   imports: [DatabaseModule, JwtModule],
   providers: [
     SecurityService,
+    SecurityBusiness,
+    EncryptionService,
+    MFAService,
     {
       provide: JWT_TYPE.ACCESS,
       useFactory: () => {
@@ -36,6 +42,6 @@ import { JWT_TYPE } from './jwt.enum';
       },
     },
   ],
-  exports: [SecurityService],
+  exports: [SecurityService, EncryptionService, MFAService],
 })
 export class SecurityModule {}
