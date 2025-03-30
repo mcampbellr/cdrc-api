@@ -12,8 +12,11 @@ import {
 import { AuthService } from './auth.service';
 import { GoogleDto } from './dtos/google.dto';
 import { LoginDto } from './dtos';
-import { JwtAuthGuard, User, JwtUser } from '@app/security';
 import { RequestWithCookies } from './types/requestCookies';
+import { RegisterDto } from './dtos/register.dto';
+import { JwtAuthGuard } from '@app/security/jwt.guard';
+import { User } from '@app/security';
+import { JwtUser } from '@app/security/strategies/data/strategies.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +26,12 @@ export class AuthController {
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   signInWithGoogle(@Body() googleDto: GoogleDto) {
     return this._authService.signInWithGoogle(googleDto);
+  }
+
+  @Post('register')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async register(@Body() registerData: RegisterDto) {
+    return this._authService.register(registerData);
   }
 
   @Post('login')

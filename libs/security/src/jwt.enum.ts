@@ -1,0 +1,5 @@
+export enum JWT_TYPE {
+  ACCESS = 'JWT_ACCESS',
+  REFRESH = 'JWT_REFRESH',
+  PRE_AUTH = 'JWT_PRE_AUTH',
+}

@@ -6,6 +6,7 @@ import { User } from '@prisma/client';
 import { UsersRepository } from '@app/database';
 import { SecurityService } from '@app/security';
 import { GoogleService } from '@app/google';
+import { RegisterDto } from './dtos/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private readonly _usersRepository: UsersRepository,
     private readonly _securityService: SecurityService,
   ) {}
+  async register(registerData: RegisterDto) {}
 
   async createOrUpdateUserWithGoogle(
     googleId: string,

@@ -16,6 +16,7 @@ enum UserStatus {
 
 model User {
   id                       String                     @id @default(uuid())
+  prefix                   String?
   name                     String
   username                 String                     @unique
   role                     RoleType                   @default(USER)
@@ -28,9 +29,11 @@ model User {
   invitedBy                String?                    @db.Uuid
   invitationCode           String?
   lastLoginAt              DateTime?
+  status                   UserStatus                 @default(ACTIVE)
   tokenVersion             Int                        @default(0)
   refreshToken             String?                    @unique
-  status                   UserStatus                 @default(ACTIVE)
+  isTwoFactorEnabled       Boolean                    @default(false)
+  twoFactorSecret          String?
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
   calendarRefreshToken     String?

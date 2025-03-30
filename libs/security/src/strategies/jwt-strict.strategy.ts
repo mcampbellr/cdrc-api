@@ -2,12 +2,13 @@ import { UsersRepository } from '@app/database';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload, JwtUser } from './jwt.strategy';
+import { JWT_STRATEGY_NAME } from './data/strategies.constants';
+import { JwtPayload, JwtUser } from './data/strategies.interface';
 
 @Injectable()
 export class StrictJwtStrategy extends PassportStrategy(
   Strategy,
-  'strict-jwt',
+  JWT_STRATEGY_NAME.JWT_STRICT.toString(),
 ) {
   constructor(private readonly usersRepository: UsersRepository) {
     super({

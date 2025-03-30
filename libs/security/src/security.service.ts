@@ -7,7 +7,8 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from './jwt.strategy';
+import { JWT_TYPE } from './jwt.enum';
+import { JwtPayload } from './strategies/data/strategies.interface';
 
 const algorithm = 'aes-256-gcm';
 
@@ -16,8 +17,9 @@ export class SecurityService {
   private _encryptionKey: Buffer<ArrayBuffer>;
   constructor(
     private readonly config: ConfigService,
-    @Inject('JWT_ACCESS') private readonly jwtAccess: JwtService,
-    @Inject('JWT_REFRESH') private readonly jwtRefresh: JwtService,
+    @Inject(JWT_TYPE.ACCESS) private readonly _jwtAccess: JwtService,
+    @Inject(JWT_TYPE.REFRESH) private readonly _jwtRefresh: JwtService,
+    @Inject(JWT_TYPE.PRE_AUTH) private readonly _jwtPreAuth: JwtService,
   ) {
     const key = Buffer.from(this.config.get<string>('ENCRYPTION_KEY'), 'hex');
 
@@ -75,19 +77,27 @@ export class SecurityService {
   }
 
   signAccessToken(payload: JwtPayload): string {
-    return this.jwtAccess.sign(payload);
+    return this._jwtAccess.sign(payload);
   }
 
   signRefreshToken(payload: JwtPayload): string {
-    return this.jwtRefresh.sign(payload);
+    return this._jwtRefresh.sign(payload);
+  }
+
+  signPreAuthToken(payload: JwtPayload): string {
+    return this._jwtPreAuth.sign(payload);
+  }
+
+  verifyPreAuthToken(token: string): any {
+    return this._jwtPreAuth.verify(token);
   }
 
   verifyAccessToken(token: string): any {
-    return this.jwtAccess.verify(token);
+    return this._jwtAccess.verify(token);
   }
 
   verifyRefreshToken(token: string): any {
-    return this.jwtRefresh.verify(token);
+    return this._jwtRefresh.verify(token);
   }
 
   async signAndGenerateTokens(payload: JwtPayload): Promise<{
