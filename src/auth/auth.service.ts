@@ -7,6 +7,7 @@ import { UsersRepository } from '@app/database';
 import { GoogleService } from '@app/google';
 import { RegisterDto } from './dtos/register.dto';
 import { EncryptionService, SecurityService } from '@app/security';
+import { SanitizedUser } from 'src/users/data/user.interface';
 
 @Injectable()
 export class AuthService {
@@ -53,17 +54,24 @@ export class AuthService {
     }
 
     const tokens = await this._issueTokensAndPersist(user);
+    const sanitizedUser = this._sanitizeUser(user);
 
     return {
-      rawUser: user,
-      user: await this._sanitizeUser(user),
+      user: sanitizedUser,
       ...tokens,
     };
   }
 
   async signInWithGoogle(googleCredentials: GoogleDto) {
     const { idToken } = googleCredentials;
-    return this.createOrUpdateUserWithGoogle(idToken);
+
+    const data = await this.createOrUpdateUserWithGoogle(idToken);
+
+    if (data.user.isTwoFactorEnabled) {
+      return await this.issuePreAuthToken(data.user);
+    } else {
+      return data;
+    }
   }
 
   async validateUser(email: string, password: string) {
@@ -99,6 +107,22 @@ export class AuthService {
     await this._usersRepository.removeRefreshToken(userId);
   }
 
+  async issuePreAuthToken(user: Partial<User>) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      version: user.tokenVersion,
+    };
+
+    const preAuthToken = this._securityService.signPreAuthToken(payload);
+
+    return {
+      preAuthToken,
+      requiresTwoFactor: true,
+    };
+  }
+
   private async _issueTokensAndPersist(user: User) {
     const payload = {
       sub: user.id,
@@ -130,7 +154,7 @@ export class AuthService {
     return user;
   }
 
-  private async _sanitizeUser(user: User) {
+  private _sanitizeUser(user: User): SanitizedUser {
     const {
       password,
       refreshToken,

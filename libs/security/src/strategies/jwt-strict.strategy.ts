@@ -6,11 +6,13 @@ import { JWT_STRATEGY_NAME } from './data/strategies.constants';
 import { JwtPayload, JwtUser } from './data/strategies.interface';
 
 @Injectable()
-export class StrictJwtStrategy extends PassportStrategy(
+export class JwtStrictStrategy extends PassportStrategy(
   Strategy,
   JWT_STRATEGY_NAME.JWT_STRICT.toString(),
 ) {
   constructor(private readonly usersRepository: UsersRepository) {
+    console.log('JwtPreAuthStrategy initialized');
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_ACCESS_SECRET,

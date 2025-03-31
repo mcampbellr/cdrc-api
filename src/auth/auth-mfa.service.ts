@@ -5,13 +5,35 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthMFAService {
   constructor(
     private readonly _MFAService: MFAService,
     private readonly _usersRepository: UsersRepository,
+    private readonly _authService: AuthService,
   ) {}
+
+  async validateMFAForUser(userId: string, mfaToken: string) {
+    const user = await this._usersRepository.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.isTwoFactorEnabled) {
+      throw new BadRequestException('MFA not enabled');
+    }
+
+    const isValid = await this._MFAService.verifyMFACode(user, mfaToken);
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid MFA token');
+    }
+
+    return this._authService.login(user);
+  }
 
   async enableMFAForUser(userId: string, mfaToken: string) {
     const user = await this._usersRepository.findById(userId);

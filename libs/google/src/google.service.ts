@@ -11,11 +11,6 @@ export interface CurrentSchedule {
   timezone?: string;
 }
 
-interface GetCalendarEventsOptions {
-  startTime: Date;
-  endTime: Date;
-}
-
 @Injectable()
 export class GoogleService {
   private _oauth2Client: OAuth2Client;
@@ -59,6 +54,7 @@ export class GoogleService {
       return response.data;
     } catch (error) {
       console.log('Error: ', error);
+      throw new ForbiddenException('Invalid Google token');
     }
   }
 
@@ -70,7 +66,7 @@ export class GoogleService {
     oAuthClient.setCredentials({ refresh_token });
 
     const events = await google.calendar('v3').events.list({
-      calendarId: 'primary',
+      calendarId: CALENDAR_ID,
       eventTypes: ['default'],
       singleEvents: true,
       timeMin: start.toISOString(),

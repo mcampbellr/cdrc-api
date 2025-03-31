@@ -1,8 +1,8 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthMFAService } from './auth-mfa.service';
-import { JwtStrictAuthGuard, User } from '@app/security';
+import { JwtPreAuthGuard, JwtStrictAuthGuard, User } from '@app/security';
 import { JwtUser } from '@app/security/strategies/data/strategies.interface';
-import { EnableMFADto } from './dtos/mfa.dto';
+import { MFABodyDto } from './dtos/mfa.dto';
 
 @Controller('auth/mfa')
 export class AuthMFAController {
@@ -22,7 +22,13 @@ export class AuthMFAController {
 
   @Post('enable')
   @UseGuards(JwtStrictAuthGuard)
-  async enableMFAForUser(@User() user: JwtUser, @Body() data: EnableMFADto) {
+  async enableMFAForUser(@User() user: JwtUser, @Body() data: MFABodyDto) {
     return this._authMFAService.enableMFAForUser(user.id, data.mfaToken);
+  }
+
+  @Post('validate')
+  @UseGuards(JwtPreAuthGuard)
+  async validateMFAForUser(@User() user: JwtUser, @Body() data: MFABodyDto) {
+    return this._authMFAService.validateMFAForUser(user.id, data.mfaToken);
   }
 }
