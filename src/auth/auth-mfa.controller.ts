@@ -1,7 +1,8 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthMFAService } from './auth-mfa.service';
 import { JwtStrictAuthGuard, User } from '@app/security';
 import { JwtUser } from '@app/security/strategies/data/strategies.interface';
+import { EnableMFADto } from './dtos/mfa.dto';
 
 @Controller('auth/mfa')
 export class AuthMFAController {
@@ -17,5 +18,11 @@ export class AuthMFAController {
       mfaQrCode: mfa.qrCode,
       mfaOtpauthUrl: mfa.otpauthUrl,
     };
+  }
+
+  @Post('enable')
+  @UseGuards(JwtStrictAuthGuard)
+  async enableMFAForUser(@User() user: JwtUser, @Body() data: EnableMFADto) {
+    return this._authMFAService.enableMFAForUser(user.id, data.mfaToken);
   }
 }

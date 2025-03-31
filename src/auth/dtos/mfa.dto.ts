@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class GoogleDto {
+export class EnableMFADto {
   @IsString()
-  @ApiProperty({ description: 'Google ID Token' })
-  idToken: string;
+  @ApiProperty({ example: '123456' })
+  mfaToken: string;
 }

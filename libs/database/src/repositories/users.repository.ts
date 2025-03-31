@@ -101,8 +101,18 @@ export class UsersRepository {
         id,
       },
       data: {
-        isTwoFactorEnabled: true,
         twoFactorSecret: mfaSecret,
+      },
+    });
+  }
+
+  async enableMFAForUser(id: string) {
+    return this.prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        isTwoFactorEnabled: true,
       },
     });
   }

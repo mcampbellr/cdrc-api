@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import * as QRCode from 'qrcode';
-import * as crypto from 'crypto';
-import * as b32 from 'hi-base32';
+import * as speakeasy from 'speakeasy';
 
 import { EncryptionService } from './encryption.service';
 import { User } from '@prisma/client';
@@ -37,33 +36,39 @@ export class MFAService {
     const qr = await this._generateQrImageDataUrl(uri);
 
     return {
-      secret: this._beautifySecret(secret),
+      secret: secret.match(/.{1,8}/g).join(' '),
       encryptSecret,
       otpauthUrl: uri,
       qrCode: qr,
     };
   }
 
+  async verifyMFACode(user: User, code: string) {
+    const secret = this._encryptionService.decrypt(user.twoFactorSecret);
+
+    return speakeasy.totp.verify({
+      secret,
+      encoding: 'base32',
+      token: code,
+    });
+  }
+
   private async _generateQrImageDataUrl(otpUri: string): Promise<string> {
     try {
       const qrDataUrl = await QRCode.toDataURL(otpUri);
-      return qrDataUrl; // formato: "data:image/png;base64,..."
+      return qrDataUrl;
     } catch (error) {
       throw new Error('Error generando código QR');
     }
   }
 
-  private _beautifySecret(secret: string) {
-    return secret.match(/.{1,8}/g)?.join(' ') ?? secret;
-  }
-
   private _generateSecret(): MFASecrets {
-    const buffer = crypto.randomBytes(20);
-    const base32 = b32.encode(buffer).replace(/=/g, '');
-    const encryptSecret = this._encryptionService.encrypt(base32);
+    var secret = speakeasy.generateSecret({ length: 20 });
+
+    const encryptSecret = this._encryptionService.encrypt(secret.base32);
 
     return {
-      secret: base32.toUpperCase(),
+      secret: secret.base32.toUpperCase(),
       encryptSecret,
     };
   }

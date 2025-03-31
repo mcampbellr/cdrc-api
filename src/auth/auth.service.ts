@@ -134,6 +134,7 @@ export class AuthService {
     const {
       password,
       refreshToken,
+      twoFactorSecret,
       calendarRefreshToken,
       tokenVersion,
       ...safeUser
