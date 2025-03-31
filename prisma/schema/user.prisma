@@ -30,7 +30,6 @@ model User {
   lastLoginAt              DateTime?
   status                   UserStatus                 @default(ACTIVE)
   tokenVersion             Int                        @default(0)
-  refreshToken             String?                    @unique
   isTwoFactorEnabled       Boolean                    @default(false)
   twoFactorSecret          String?
   createdAt                DateTime                   @default(now())
@@ -46,6 +45,20 @@ model User {
   treatments               PatientTreatment[]         @relation("Patient")
   patientTreatments        PatientTreatment[]         @relation("Doctor")
   payments                 Payment[]
+  refreshTokens            RefreshToken[]
 
   @@map("users")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  hashedToken String   @unique 
+  deviceId    String   @db.Uuid
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("refresh_tokens")
 }

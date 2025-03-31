@@ -3,11 +3,12 @@ import * as bcrypt from 'bcryptjs';
 
 import { GoogleDto } from './dtos/google.dto';
 import { User } from '@prisma/client';
-import { UsersRepository } from '@app/database';
+import { RefreshTokenRepository, UsersRepository } from '@app/database';
 import { GoogleService } from '@app/google';
 import { RegisterDto } from './dtos/register.dto';
 import { EncryptionService, SecurityService } from '@app/security';
 import { SanitizedUser } from 'src/users/data/user.interface';
+import { JwtPayload } from '@app/security/strategies/data/strategies.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,13 +17,18 @@ export class AuthService {
     private readonly _usersRepository: UsersRepository,
     private readonly _encryptionService: EncryptionService,
     private readonly _securityService: SecurityService,
+    private readonly _refreshTokenRepository: RefreshTokenRepository,
   ) {}
   async register(registerData: RegisterDto) {}
 
   async createOrUpdateUserWithGoogle(
     googleId: string,
     googleRefreshToken?: string,
-  ) {
+  ): Promise<{
+    user: SanitizedUser;
+    accessToken?: string;
+    refreshToken?: string;
+  }> {
     const googleUser = await this._googleService.getGoogleUser(googleId);
     let user = await this._usersRepository.findByGoogleId(googleUser.id);
 
@@ -53,8 +59,15 @@ export class AuthService {
       );
     }
 
-    const tokens = await this._issueTokensAndPersist(user);
     const sanitizedUser = this._sanitizeUser(user);
+
+    if (user.isTwoFactorEnabled) {
+      return {
+        user: sanitizedUser,
+      };
+    }
+
+    const tokens = await this._issueTokensAndPersist(user);
 
     return {
       user: sanitizedUser,
@@ -89,6 +102,7 @@ export class AuthService {
     const user = await this._validateStoredRefreshToken(userId, refreshToken);
 
     const payload = this._securityService.verifyRefreshToken(refreshToken);
+
     if (payload.version !== user.tokenVersion) {
       throw new ForbiddenException('Token version mismatch');
     }
@@ -103,8 +117,15 @@ export class AuthService {
     return this._sanitizeUser(user);
   }
 
-  async logout(userId: string) {
-    await this._usersRepository.removeRefreshToken(userId);
+  async logout(userId: string, refreshToken: string) {
+    const tokenData = this._securityService.verifyRefreshToken(refreshToken);
+    const hashedToken = this._securityService.hashRefreshToken(refreshToken);
+
+    await this._usersRepository.removeRefreshToken(
+      userId,
+      tokenData.deviceId,
+      hashedToken,
+    );
   }
 
   async issuePreAuthToken(user: Partial<User>) {
@@ -124,32 +145,57 @@ export class AuthService {
   }
 
   private async _issueTokensAndPersist(user: User) {
+    const deviceId = crypto.randomUUID();
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       version: user.tokenVersion,
+      deviceId,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } =
       await this._securityService.signAndGenerateTokens(payload);
 
-    await this._usersRepository.updateRefreshToken(user.id, hashedRefreshToken);
+    await this._usersRepository.addRefreshToken(
+      user.id,
+      hashedRefreshToken,
+      deviceId,
+    );
 
     return {
       accessToken,
       refreshToken,
+      deviceId,
     };
   }
 
   private async _validateStoredRefreshToken(userId: string, token: string) {
+    const user = await this._usersRepository.findById(userId);
+
+    if (!user) throw new ForbiddenException();
     if (!token) throw new ForbiddenException();
 
-    const user = await this._usersRepository.findById(userId);
-    if (!user?.refreshToken) throw new ForbiddenException();
+    let payload: JwtPayload;
+    try {
+      payload = this._securityService.verifyRefreshToken(token);
+    } catch (err) {
+      throw new ForbiddenException('Invalid token');
+    }
 
-    const isValid = await bcrypt.compare(token, user.refreshToken);
-    if (!isValid) throw new ForbiddenException();
+    if (payload.sub !== user.id) {
+      throw new ForbiddenException('User mismatch');
+    }
+
+    const hashedToken = this._securityService.hashRefreshToken(token);
+
+    const stored = await this._refreshTokenRepository.findOne(
+      user.id,
+      payload.deviceId,
+      hashedToken,
+    );
+
+    if (!stored) throw new ForbiddenException('Token not found or revoked');
 
     return user;
   }
@@ -157,7 +203,6 @@ export class AuthService {
   private _sanitizeUser(user: User): SanitizedUser {
     const {
       password,
-      refreshToken,
       twoFactorSecret,
       calendarRefreshToken,
       tokenVersion,

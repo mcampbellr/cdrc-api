@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { JWT_TYPE } from '../jwt.enum';
 import { JwtPayload } from '../strategies/data/strategies.interface';
@@ -20,20 +21,20 @@ export class SecurityService {
     return this._jwtRefresh.sign(payload);
   }
 
-  signPreAuthToken(payload: JwtPayload): string {
+  signPreAuthToken(payload: Omit<JwtPayload, 'deviceId'>): string {
     return this._jwtPreAuth.sign(payload);
   }
 
-  verifyPreAuthToken(token: string): any {
-    return this._jwtPreAuth.verify(token);
+  verifyPreAuthToken(token: string) {
+    return this._jwtPreAuth.verify<JwtPayload>(token);
   }
 
-  verifyAccessToken(token: string): any {
-    return this._jwtAccess.verify(token);
+  verifyAccessToken(token: string) {
+    return this._jwtAccess.verify<JwtPayload>(token);
   }
 
-  verifyRefreshToken(token: string): any {
-    return this._jwtRefresh.verify(token);
+  verifyRefreshToken(token: string) {
+    return this._jwtRefresh.verify<JwtPayload>(token);
   }
 
   async signAndGenerateTokens(payload: JwtPayload): Promise<{
@@ -44,8 +45,12 @@ export class SecurityService {
     const accessToken = this.signAccessToken(payload);
     const refreshToken = this.signRefreshToken(payload);
 
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    const hashedRefreshToken = this.hashRefreshToken(refreshToken);
 
     return { accessToken, refreshToken, hashedRefreshToken };
+  }
+
+  hashRefreshToken(token: string) {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 }

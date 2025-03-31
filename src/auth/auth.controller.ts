@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -15,10 +16,20 @@ import { RegisterDto } from './dtos/register.dto';
 import { JwtAuthGuard } from '@app/security/jwt.guard';
 import { User } from '@app/security';
 import { JwtUser } from '@app/security/strategies/data/strategies.interface';
+import { CookieOptions, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
+import { AuthUtils } from './auth.utils';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly _authService: AuthService) {}
+  private readonly environment: string;
+  constructor(
+    private readonly _authService: AuthService,
+    private readonly _configService: ConfigService,
+    private readonly _authUtils: AuthUtils,
+  ) {
+    this.environment = this._configService.get<string>('NODE_ENV');
+  }
 
   @Post('google')
   signInWithGoogle(@Body() googleDto: GoogleDto) {
@@ -42,7 +53,6 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Req() request: RequestWithCookies) {
     const refreshToken = request.cookies.refreshToken;
-    console.log('refreshToken', refreshToken);
     const userId = request.cookies.userId;
 
     if (!refreshToken || !userId) {
@@ -60,8 +70,15 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(@User() user: JwtUser) {
-    await this._authService.logout(user.id);
+  async logout(
+    @User() user: JwtUser,
+    @Req() request: RequestWithCookies,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies.refreshToken;
+    await this._authService.logout(user.id, refreshToken);
+
+    this._authUtils.clearAuthCookies(response);
 
     return { ok: true };
   }

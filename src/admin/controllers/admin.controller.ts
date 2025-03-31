@@ -6,25 +6,25 @@ import {
   Redirect,
   Res,
 } from '@nestjs/common';
-import { CookieOptions, Response } from 'express';
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { GoogleService } from '@app/google';
 import { OAuth2Client } from 'google-auth-library';
 import { AuthService } from 'src/auth/auth.service';
+import { AuthUtils } from 'src/auth/auth.utils';
 
 @Controller('admin')
 export class AdminController {
-  private readonly environment: string;
   private _oauth2Client: OAuth2Client;
   private frontendUrl: string;
+
   constructor(
     private readonly _authService: AuthService,
     private readonly _googleService: GoogleService,
     private readonly _configService: ConfigService,
+    private readonly _authUtils: AuthUtils,
   ) {
-    this.environment = this._configService.get<string>('NODE_ENV');
     this._oauth2Client = this._googleService.getOauth2Client();
-
     this.frontendUrl = this._configService.get<string>('APP_FRONTEND_URL');
     if (!this.frontendUrl) {
       throw new Error('APP_FRONTEND_URL is not defined');
@@ -40,7 +40,7 @@ export class AdminController {
   @Redirect()
   async googleCalendarCallback(
     @Query('code') code: string,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     try {
       const { tokens: googleTokens } = await this._oauth2Client.getToken(code);
@@ -62,13 +62,7 @@ export class AdminController {
           url: `${this.frontendUrl}/google/success?pat=${preAuthToken}&mfa=true&uid=${user.id}`,
         };
       } else {
-        const cookieOptions: CookieOptions = {
-          httpOnly: true,
-          secure: this.environment === 'production',
-          sameSite: this.environment === 'production' ? 'none' : 'lax',
-        };
-        res.cookie('refreshToken', refreshToken, cookieOptions);
-        res.cookie('userId', user.id, cookieOptions);
+        this._authUtils.setAuthCookies(res, refreshToken, user.id);
 
         return {
           url: `${this.frontendUrl}/google/success?at=${accessToken}&uid=${user.id}`,

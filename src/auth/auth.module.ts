@@ -11,6 +11,7 @@ import {
 import { GoogleModule } from '@app/google';
 import { AuthMFAController } from './auth-mfa.controller';
 import { AuthMFAService } from './auth-mfa.service';
+import { AuthUtils } from './auth.utils';
 
 @Module({
   imports: [DatabaseModule, SecurityModule, GoogleModule],
@@ -18,6 +19,7 @@ import { AuthMFAService } from './auth-mfa.service';
   providers: [
     AuthService,
     AuthMFAService,
+    AuthUtils,
     JwtStrategy,
     JwtStrictStrategy,
     JwtPreAuthStrategy,
@@ -25,6 +27,7 @@ import { AuthMFAService } from './auth-mfa.service';
   exports: [
     AuthService,
     AuthMFAService,
+    AuthUtils,
     JwtStrategy,
     JwtStrictStrategy,
     JwtPreAuthStrategy,

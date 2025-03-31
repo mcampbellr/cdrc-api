@@ -62,13 +62,16 @@ export class UsersRepository {
     });
   }
 
-  async updateRefreshToken(id: string, refreshToken: string) {
-    return this.prisma.user.update({
-      where: {
-        id,
-      },
+  async addRefreshToken(id: string, refreshToken: string, deviceId: string) {
+    return this.prisma.refreshToken.create({
       data: {
-        refreshToken,
+        hashedToken: refreshToken,
+        deviceId,
+        user: {
+          connect: {
+            id,
+          },
+        },
       },
     });
   }
@@ -84,13 +87,17 @@ export class UsersRepository {
     });
   }
 
-  async removeRefreshToken(id: string) {
-    return this.prisma.user.update({
+  async removeRefreshToken(id: string, deviceId: string, token: string) {
+    return this.prisma.refreshToken.update({
       where: {
-        id,
+        user: {
+          id,
+        },
+        hashedToken: token,
+        deviceId,
       },
       data: {
-        refreshToken: null,
+        revoked: true,
       },
     });
   }
