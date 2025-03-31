@@ -14,7 +14,6 @@ interface MFASecrets {
 
 export interface MFA extends MFASecrets {
   otpauthUrl: string;
-  qrCode: string;
 }
 
 @Injectable()
@@ -33,13 +32,11 @@ export class MFAService {
     );
 
     const uri = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}`;
-    const qr = await this._generateQrImageDataUrl(uri);
 
     return {
       secret: secret.match(/.{1,8}/g).join(' '),
       encryptSecret,
       otpauthUrl: uri,
-      qrCode: qr,
     };
   }
 
@@ -51,15 +48,6 @@ export class MFAService {
       encoding: 'base32',
       token: code,
     });
-  }
-
-  private async _generateQrImageDataUrl(otpUri: string): Promise<string> {
-    try {
-      const qrDataUrl = await QRCode.toDataURL(otpUri);
-      return qrDataUrl;
-    } catch (error) {
-      throw new Error('Error generando código QR');
-    }
   }
 
   private _generateSecret(): MFASecrets {

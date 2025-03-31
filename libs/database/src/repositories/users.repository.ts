@@ -62,16 +62,25 @@ export class UsersRepository {
     });
   }
 
-  async addRefreshToken(id: string, refreshToken: string, deviceId: string) {
-    return this.prisma.refreshToken.create({
-      data: {
-        hashedToken: refreshToken,
-        deviceId,
-        user: {
-          connect: {
-            id,
-          },
+  async addRefreshToken(
+    userId: string,
+    refreshToken: string,
+    deviceId: string,
+  ) {
+    return this.prisma.refreshToken.upsert({
+      where: {
+        userId_deviceId: {
+          userId,
+          deviceId,
         },
+      },
+      create: {
+        userId,
+        deviceId,
+        hashedToken: refreshToken,
+      },
+      update: {
+        hashedToken: refreshToken,
       },
     });
   }

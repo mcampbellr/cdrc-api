@@ -107,7 +107,7 @@ export class AuthService {
       throw new ForbiddenException('Token version mismatch');
     }
 
-    return this._issueTokensAndPersist(user);
+    return this._issueTokensAndPersist(user, payload.deviceId);
   }
 
   async profile(userId: string) {
@@ -144,14 +144,15 @@ export class AuthService {
     };
   }
 
-  private async _issueTokensAndPersist(user: User) {
-    const deviceId = crypto.randomUUID();
+  private async _issueTokensAndPersist(user: User, deviceId?: string) {
+    const deviceUUID = deviceId || crypto.randomUUID();
+
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       version: user.tokenVersion,
-      deviceId,
+      deviceId: deviceUUID,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } =
@@ -160,7 +161,7 @@ export class AuthService {
     await this._usersRepository.addRefreshToken(
       user.id,
       hashedRefreshToken,
-      deviceId,
+      payload.deviceId,
     );
 
     return {

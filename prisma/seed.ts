@@ -2,12 +2,54 @@ import {
   AccountType,
   DayOfWeek,
   PrismaClient,
+  RoleType,
   ScheduleAvailability,
 } from '@prisma/client';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
 (async function main() {
+  const patients = [];
+
+  for (let i = 1; i <= 12; i++) {
+    const personName = faker.person.firstName();
+    const personLastName = faker.person.lastName();
+
+    const fullName = `${personName} ${personLastName}`;
+
+    const personEmail = faker.internet.email({
+      firstName: personName,
+      lastName: personLastName,
+    });
+
+    const personPassword = '123456';
+    const personUsername = faker.internet.username({
+      firstName: personName,
+      lastName: personLastName,
+    });
+
+    patients.push({
+      name: fullName,
+      email: personEmail,
+      avatar: faker.image.avatar(),
+      password: personPassword,
+      username: personUsername,
+    });
+  }
+
+  for (const patient of patients) {
+    await prisma.user.create({
+      data: {
+        name: patient.name,
+        email: patient.email,
+        password: patient.password,
+        username: patient.username,
+        accountType: AccountType.PATIENT,
+      },
+    });
+  }
+
   try {
     const branch = await prisma.branch.create({
       data: {
@@ -35,6 +77,7 @@ const prisma = new PrismaClient();
         email: 'javier@centroderejuvenecimiento.com',
         password: '123456',
         username: 'javierulloa',
+        role: RoleType.ADMIN,
         accountType: AccountType.DOCTOR,
         calendarRefreshToken:
           '78829a43db8eb71d74bf14c00af33313.2ac916be1b7435108a1d799aebcc1b28.187a8ed0e80d98d52228f17436ef41ee074a041077bd2ba799a1061388d8429f19539ebd0de2356b2bc31dbbbf6a6d2ef352175ed647abb345a42431697eed9eb14f6685ca404c5db6059c73fbbc7fb20b07f3a2c19d7f118e54320fb40d78a369cbba552c2158',

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthMFAService } from './auth-mfa.service';
 import { JwtPreAuthGuard, JwtStrictAuthGuard, User } from '@app/security';
 import { JwtUser } from '@app/security/strategies/data/strategies.interface';
@@ -13,14 +13,13 @@ export class AuthMFAController {
     private readonly _authUtils: AuthUtils,
   ) {}
 
-  @Post('generate')
+  @Get('setup')
   @UseGuards(JwtStrictAuthGuard)
-  async generateMFA(@User() user: JwtUser) {
+  async getMFASetup(@User() user: JwtUser) {
     const mfa = await this._authMFAService.generateMFAForUser(user.id);
 
     return {
       mfaSecret: mfa.secret,
-      mfaQrCode: mfa.qrCode,
       mfaOtpauthUrl: mfa.otpauthUrl,
     };
   }

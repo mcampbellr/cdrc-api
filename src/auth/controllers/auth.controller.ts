@@ -16,20 +16,15 @@ import { RegisterDto } from './dtos/register.dto';
 import { JwtAuthGuard } from '@app/security/jwt.guard';
 import { User } from '@app/security';
 import { JwtUser } from '@app/security/strategies/data/strategies.interface';
-import { CookieOptions, Response } from 'express';
-import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 import { AuthUtils } from './auth.utils';
 
 @Controller('auth')
 export class AuthController {
-  private readonly environment: string;
   constructor(
     private readonly _authService: AuthService,
-    private readonly _configService: ConfigService,
     private readonly _authUtils: AuthUtils,
-  ) {
-    this.environment = this._configService.get<string>('NODE_ENV');
-  }
+  ) {}
 
   @Post('google')
   signInWithGoogle(@Body() googleDto: GoogleDto) {
@@ -51,15 +46,24 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Req() request: RequestWithCookies) {
+  async refresh(
+    @Req() request: RequestWithCookies,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const refreshToken = request.cookies.refreshToken;
     const userId = request.cookies.userId;
 
     if (!refreshToken || !userId) {
       throw new UnauthorizedException();
     }
+    const tokens = await this._authService.refreshTokens(userId, refreshToken);
 
-    return this._authService.refreshTokens(userId, refreshToken);
+    this._authUtils.setAuthCookies(res, tokens.refreshToken, userId);
+
+    return {
+      accessToken: tokens.accessToken,
+      deviceId: tokens.deviceId,
+    };
   }
 
   @Get('me')

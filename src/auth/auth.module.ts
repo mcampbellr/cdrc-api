@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
 import { DatabaseModule } from '@app/database';
 import {
   JwtStrategy,
@@ -9,9 +7,11 @@ import {
   JwtPreAuthStrategy,
 } from '@app/security';
 import { GoogleModule } from '@app/google';
-import { AuthMFAController } from './auth-mfa.controller';
-import { AuthMFAService } from './auth-mfa.service';
 import { AuthUtils } from './auth.utils';
+import { AuthController } from './controllers/auth.controller';
+import { AuthMFAController } from './controllers/auth-mfa.controller';
+import { AuthService } from './services/auth.service';
+import { AuthMFAService } from './services/auth-mfa.service';
 
 @Module({
   imports: [DatabaseModule, SecurityModule, GoogleModule],
