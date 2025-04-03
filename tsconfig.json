@@ -32,23 +32,29 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
+      "@app/apple": [
+        "libs/apple/src"
+      ],
+      "@app/apple/*": [
+        "libs/apple/src/*"
+      ],
       "@app/database": [
         "libs/database/src"
       ],
       "@app/database/*": [
         "libs/database/src/*"
       ],
-      "@app/security": [
-        "libs/security/src"
-      ],
-      "@app/security/*": [
-        "libs/security/src/*"
-      ],
       "@app/google": [
         "libs/google/src"
       ],
       "@app/google/*": [
         "libs/google/src/*"
+      ],
+      "@app/security": [
+        "libs/security/src"
+      ],
+      "@app/security/*": [
+        "libs/security/src/*"
       ]
     }
   }

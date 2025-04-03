@@ -45,6 +45,14 @@ export class UsersRepository {
     });
   }
 
+  async findByAppleId(appleId: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        appleId,
+      },
+    });
+  }
+
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: {
@@ -96,13 +104,17 @@ export class UsersRepository {
     });
   }
 
-  async removeRefreshToken(id: string, deviceId: string, token: string) {
+  async revokeRefreshToken(
+    userId: string,
+    deviceId: string,
+    refreshToken: string,
+  ) {
     return this.prisma.refreshToken.update({
       where: {
         user: {
-          id,
+          id: userId,
         },
-        hashedToken: token,
+        hashedToken: refreshToken,
         deviceId,
       },
       data: {

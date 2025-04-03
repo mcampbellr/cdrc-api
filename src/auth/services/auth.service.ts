@@ -1,25 +1,25 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
-import { GoogleDto } from './dtos/google.dto';
 import { User } from '@prisma/client';
 import { RefreshTokenRepository, UsersRepository } from '@app/database';
 import { GoogleService } from '@app/google';
-import { RegisterDto } from './dtos/register.dto';
 import { EncryptionService, SecurityService } from '@app/security';
 import { SanitizedUser } from 'src/users/data/user.interface';
 import { JwtPayload } from '@app/security/strategies/data/strategies.interface';
+import { SocialDto } from '../dtos/social.dto';
+import { AppleService } from '@app/apple';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly _googleService: GoogleService,
+    private readonly _appleService: AppleService,
     private readonly _usersRepository: UsersRepository,
     private readonly _encryptionService: EncryptionService,
     private readonly _securityService: SecurityService,
     private readonly _refreshTokenRepository: RefreshTokenRepository,
   ) {}
-  async register(registerData: RegisterDto) {}
 
   async createOrUpdateUserWithGoogle(
     googleId: string,
@@ -30,6 +30,7 @@ export class AuthService {
     refreshToken?: string;
   }> {
     const googleUser = await this._googleService.getGoogleUser(googleId);
+
     let user = await this._usersRepository.findByGoogleId(googleUser.id);
 
     if (!user) {
@@ -75,15 +76,75 @@ export class AuthService {
     };
   }
 
-  async signInWithGoogle(googleCredentials: GoogleDto) {
-    const { idToken } = googleCredentials;
+  async createOrUpdateUserWithApple(appleToken: string, userName: string) {
+    const appleUser = await this._appleService.validateAppleToken(appleToken);
 
-    const data = await this.createOrUpdateUserWithGoogle(idToken);
+    let user = await this._usersRepository.findByAppleId(appleUser.sub);
 
-    if (data.user.isTwoFactorEnabled) {
-      return await this.issuePreAuthToken(data.user);
+    if (!user) {
+      user = await this._usersRepository.findByEmail(appleUser.email);
+
+      if (user) {
+        user = await this._usersRepository.update(user.id, {
+          appleId: appleUser.sub,
+        });
+      } else {
+        user = await this._usersRepository.create({
+          appleId: appleUser.sub,
+          email: appleUser.email,
+          name: userName,
+        });
+      }
+    }
+
+    const sanitizedUser = this._sanitizeUser(user);
+
+    if (user.isTwoFactorEnabled) {
+      return {
+        user: sanitizedUser,
+      };
+    }
+
+    const tokens = await this._issueTokensAndPersist(user);
+
+    return {
+      user: sanitizedUser,
+      ...tokens,
+    };
+  }
+
+  async signInWithSocial(socialData: SocialDto) {
+    const { token, provider, userName } = socialData;
+    let data: {
+      user: SanitizedUser;
+      accessToken?: string;
+      refreshToken?: string;
+    };
+
+    switch (provider) {
+      case 'google':
+        data = await this.createOrUpdateUserWithGoogle(token);
+        break;
+      case 'apple':
+        if (!userName) {
+          throw new ForbiddenException('Missing user name');
+        }
+        data = await this.createOrUpdateUserWithApple(token, userName);
+        break;
+      default:
+        throw new ForbiddenException('Invalid provider');
+    }
+
+    const { user } = data;
+
+    if (user.isTwoFactorEnabled) {
+      return await this.issuePreAuthToken(user);
     } else {
-      return data;
+      return {
+        user: user,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      };
     }
   }
 
@@ -121,7 +182,8 @@ export class AuthService {
     const tokenData = this._securityService.verifyRefreshToken(refreshToken);
     const hashedToken = this._securityService.hashRefreshToken(refreshToken);
 
-    await this._usersRepository.removeRefreshToken(
+
+    await this._usersRepository.revokeRefreshToken(
       userId,
       tokenData.deviceId,
       hashedToken,
@@ -165,6 +227,7 @@ export class AuthService {
     );
 
     return {
+      user: this._sanitizeUser(user),
       accessToken,
       refreshToken,
       deviceId,

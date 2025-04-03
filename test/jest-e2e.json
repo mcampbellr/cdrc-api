@@ -1,5 +1,9 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
@@ -7,11 +11,13 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@app/database/(.*)": "<rootDir>/../libs/database/src/$1",
+    "@app/apple": "<rootDir>/../libs/apple/src",
+    "@app/apple/(.*)": "<rootDir>/../libs/apple/src/$1",
     "@app/database": "<rootDir>/../libs/database/src",
-    "@app/security/(.*)": "<rootDir>/../libs/security/src/$1",
-    "@app/security": "<rootDir>/../libs/security/src",
+    "@app/database/(.*)": "<rootDir>/../libs/database/src/$1",
+    "@app/google": "<rootDir>/../libs/google/src",
     "@app/google/(.*)": "<rootDir>/../libs/google/src/$1",
-    "@app/google": "<rootDir>/../libs/google/src"
+    "@app/security": "<rootDir>/../libs/security/src",
+    "@app/security/(.*)": "<rootDir>/../libs/security/src/$1"
   }
 }

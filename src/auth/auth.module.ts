@@ -12,9 +12,10 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthMFAController } from './controllers/auth-mfa.controller';
 import { AuthService } from './services/auth.service';
 import { AuthMFAService } from './services/auth-mfa.service';
+import { AppleModule } from '@app/apple';
 
 @Module({
-  imports: [DatabaseModule, SecurityModule, GoogleModule],
+  imports: [DatabaseModule, SecurityModule, GoogleModule, AppleModule],
   controllers: [AuthController, AuthMFAController],
   providers: [
     AuthService,

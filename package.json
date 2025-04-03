@@ -48,6 +48,8 @@
     "google-auth-library": "^9.15.1",
     "googleapis": "^148.0.0",
     "hi-base32": "^0.5.1",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0",
     "lodash": "^4.17.21",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -111,9 +113,10 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
+      "^@app/apple(|/.*)$": "<rootDir>/libs/apple/src/$1",
       "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
-      "^@app/security(|/.*)$": "<rootDir>/libs/security/src/$1",
-      "^@app/google(|/.*)$": "<rootDir>/libs/google/src/$1"
+      "^@app/google(|/.*)$": "<rootDir>/libs/google/src/$1",
+      "^@app/security(|/.*)$": "<rootDir>/libs/security/src/$1"
     }
   }
 }

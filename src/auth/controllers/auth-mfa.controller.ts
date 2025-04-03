@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
-import { AuthMFAService } from './auth-mfa.service';
 import { JwtPreAuthGuard, JwtStrictAuthGuard, User } from '@app/security';
 import { JwtUser } from '@app/security/strategies/data/strategies.interface';
-import { MFABodyDto } from './dtos/mfa.dto';
 import { Response } from 'express';
-import { AuthUtils } from './auth.utils';
+import { AuthUtils } from '../auth.utils';
+import { MFABodyDto } from '../dtos/mfa.dto';
+import { AuthMFAService } from '../services/auth-mfa.service';
 
 @Controller('auth/mfa')
 export class AuthMFAController {
@@ -37,16 +37,13 @@ export class AuthMFAController {
     @Body() data: MFABodyDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this._authMFAService.validateMFAForUser(
+    const result = await this._authMFAService.validateMFAForUser(
       user.id,
       data.mfaToken,
     );
 
-    this._authUtils.setAuthCookies(res, tokens.refreshToken, user.id);
+    this._authUtils.setAuthCookies(res, result.refreshToken, user.id);
 
-    return {
-      accessToken: tokens.accessToken,
-      deviceId: tokens.deviceId,
-    };
+    return result;
   }
 }

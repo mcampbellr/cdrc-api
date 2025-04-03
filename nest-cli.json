@@ -2,16 +2,17 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true
   },
   "projects": {
-    "db": {
+    "apple": {
       "type": "library",
-      "root": "libs/db",
+      "root": "libs/apple",
       "entryFile": "index",
-      "sourceRoot": "libs/db/src",
+      "sourceRoot": "libs/apple/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/db/tsconfig.lib.json"
+        "tsConfigPath": "libs/apple/tsconfig.lib.json"
       }
     },
     "database": {
@@ -23,13 +24,13 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
-    "security": {
+    "db": {
       "type": "library",
-      "root": "libs/security",
+      "root": "libs/db",
       "entryFile": "index",
-      "sourceRoot": "libs/security/src",
+      "sourceRoot": "libs/db/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/security/tsconfig.lib.json"
+        "tsConfigPath": "libs/db/tsconfig.lib.json"
       }
     },
     "google": {
@@ -39,6 +40,15 @@
       "sourceRoot": "libs/google/src",
       "compilerOptions": {
         "tsConfigPath": "libs/google/tsconfig.lib.json"
+      }
+    },
+    "security": {
+      "type": "library",
+      "root": "libs/security",
+      "entryFile": "index",
+      "sourceRoot": "libs/security/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/security/tsconfig.lib.json"
       }
     }
   }

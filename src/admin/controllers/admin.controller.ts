@@ -10,8 +10,8 @@ import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { GoogleService } from '@app/google';
 import { OAuth2Client } from 'google-auth-library';
-import { AuthService } from 'src/auth/auth.service';
 import { AuthUtils } from 'src/auth/auth.utils';
+import { AuthService } from 'src/auth/services/auth.service';
 
 @Controller('admin')
 export class AdminController {
